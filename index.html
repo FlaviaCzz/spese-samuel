@@ -115,6 +115,11 @@
 
   <!-- RIEPILOGO -->
   <div id="sec-riepilogo" class="section active">
+    <div style="position:relative;margin-bottom:10px;">
+      <input type="text" id="search" placeholder="Cerca spesa..." oninput="renderAll()" style="padding-left:34px;">
+      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.4;" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <button id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:var(--text2);cursor:pointer;padding:2px 4px;">✕</button>
+    </div>
     <div class="tab-row">
       <button class="active" onclick="switchTab('ordinaria',this)">Spese extra</button>
       <button onclick="switchTab('buonopasto',this)">Buoni pasto</button>
@@ -302,6 +307,21 @@ function switchTab(tab, btn) {
 
 function renderAll() { renderOrd(); renderBP(); renderMant(); }
 
+function getSearch() {
+  const el = document.getElementById('search');
+  const v = el ? el.value.trim().toLowerCase() : '';
+  const clr = document.getElementById('search-clear');
+  if (clr) clr.style.display = v ? 'block' : 'none';
+  return v;
+}
+function clearSearch() {
+  const el = document.getElementById('search');
+  if (el) el.value = '';
+  const clr = document.getElementById('search-clear');
+  if (clr) clr.style.display = 'none';
+  renderAll();
+}
+
 function renderOrd() {
   const d=db(); const fs=document.getElementById('f-stato').value; const fa=document.getElementById('f-anno').value;
   const ord=d.spese.filter(s=>s.tipo==='ordinaria');
@@ -320,6 +340,7 @@ function renderOrd() {
   let fl=ord;
   if(fa) fl=fl.filter(s=>s.data&&s.data.startsWith(fa));
   if(fs) fl=fl.filter(s=>stato(s)===fs);
+  const q=getSearch(); if(q) fl=fl.filter(s=>(s.voce+' '+(s.note||'')).toLowerCase().includes(q));
   fl=fl.sort((a,b)=>(b.data||'').localeCompare(a.data||''));
   const el=document.getElementById('lo');
   if(!fl.length){el.innerHTML='<div class="empty">Nessuna spesa corrispondente</div>';return;}
@@ -343,8 +364,10 @@ function renderOrd() {
 }
 
 function renderBP() {
-  const d=db(); const bp=d.spese.filter(s=>s.tipo==='buonopasto');
-  const tot=bp.reduce((a,s)=>a+s.importo,0);
+  const d=db(); const q=getSearch();
+  let bp=d.spese.filter(s=>s.tipo==='buonopasto');
+  if(q) bp=bp.filter(s=>(s.voce+' '+(s.note||'')).toLowerCase().includes(q));
+  const tot=d.spese.filter(s=>s.tipo==='buonopasto').reduce((a,s)=>a+s.importo,0);
   document.getElementById('sbp').innerHTML=`<div class="stat full"><div class="sl">Totale buoni pasto (esclusi dal conteggio spese extra)</div><div class="sv">${fmt(tot)}</div></div>`;
   document.getElementById('lbp').innerHTML=!bp.length?'<div class="empty">Nessun buono pasto</div>':
     bp.sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(s=>`
@@ -356,9 +379,11 @@ function renderBP() {
 }
 
 function renderMant() {
-  const d=db(); const m=d.spese.filter(s=>s.tipo==='mantenimento');
-  const tot=m.reduce((a,s)=>a+s.importo,0); const pag=m.reduce((a,s)=>a+(s.pagato||0),0);
-  const ns=m.filter(s=>stato(s)==='ok').length;
+  const d=db(); const q=getSearch();
+  const mAll=d.spese.filter(s=>s.tipo==='mantenimento');
+  let m=q?mAll.filter(s=>(s.voce+' '+(s.note||'')).toLowerCase().includes(q)):mAll;
+  const tot=mAll.reduce((a,s)=>a+s.importo,0); const pag=mAll.reduce((a,s)=>a+(s.pagato||0),0);
+  const ns=mAll.filter(s=>stato(s)==='ok').length;
   document.getElementById('sm').innerHTML=`
     <div class="stat"><div class="sl">Totale atteso</div><div class="sv">${fmt(tot)}</div></div>
     <div class="stat"><div class="sl">Ricevuto</div><div class="sv">${fmt(pag)}</div></div>
