@@ -219,91 +219,19 @@ function db() {
     const r = localStorage.getItem(K);
     if (r) {
       const d = JSON.parse(r);
-      migrateDB(d);
-      autoMantenimento(d);
+      const before = d.spese.length;
+      d.spese = d.spese.filter(s => s.tipo !== 'mantenimento');
+      if (d.spese.length !== before) save(d);
       return d;
     }
     const d = JSON.parse(JSON.stringify(SEED));
     localStorage.setItem(K, JSON.stringify(d));
-    autoMantenimento(d);
     return d;
   } catch(e) { return JSON.parse(JSON.stringify(SEED)); }
 }
 function save(d) { localStorage.setItem(K, JSON.stringify(d)); }
 
-const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 
-
-// Migrazione: pulisce duplicati mantenimento e corregge date
-function migrateDB(d) {
-  // Sync all records from SEED into existing localStorage data
-  let changed = false;
-  SEED.spese.forEach(seedItem => {
-    const existing = d.spese.find(x => x.id === seedItem.id);
-    if (!existing) {
-      d.spese.push(seedItem);
-      changed = true;
-    } else {
-      // Update fields except pagato/dataPagamento/notePagamento (user data)
-      ['voce','data','importo','tipo','note'].forEach(k => {
-        if (existing[k] !== seedItem[k]) { existing[k] = seedItem[k]; changed = true; }
-      });
-    }
-  });
-  // Remove duplicates: keep one mantenimento per YYYY-MM
-  const mant = d.spese.filter(s => s.tipo === 'mantenimento');
-  const other = d.spese.filter(s => s.tipo !== 'mantenimento');
-  const byMonth = {};
-  mant.forEach(s => {
-    if (!s.data) return;
-    const key = s.data.slice(0, 7);
-    if (!byMonth[key] || s.pagato > byMonth[key].pagato) byMonth[key] = s;
-    else changed = true;
-  });
-  const cleanMant = Object.values(byMonth).sort((a,b) => a.data.localeCompare(b.data));
-  d.spese = other.concat(cleanMant);
-  // Update nextId
-  const maxId = Math.max(...d.spese.map(s => s.id));
-  if (d.nextId <= maxId) { d.nextId = maxId + 1; changed = true; }
-  if (changed) save(d);
-}
-
-function autoMantenimento(d) {
-  // Genera automaticamente voci di mantenimento mancanti fino al mese corrente
-  const oggi = new Date();
-  const annoOggi = oggi.getFullYear();
-  const meseOggi = oggi.getMonth() + 1; // 1-12
-  // Trova il mese/anno più recente già presente
-  const presenti = new Set(
-    d.spese.filter(s => s.tipo === 'mantenimento' && s.data)
-      .map(s => s.data.slice(0, 7)) // YYYY-MM
-  );
-  // Scorri da 2024-12 fino al mese corrente incluso
-  let y = 2024, m = 12;
-  let added = 0;
-  while (y < annoOggi || (y === annoOggi && m <= meseOggi)) {
-    const key = `${y}-${String(m).padStart(2,'0')}`;
-    if (!presenti.has(key)) {
-      const nomeMese = MESI[m-1];
-      d.spese.push({
-        id: d.nextId++,
-        voce: `Mantenimento ${nomeMese} ${y}`,
-        data: `${key}-05`,
-        importo: 0,
-        tipo: 'mantenimento',
-        pagato: 0,
-        dataPagamento: null,
-        notePagamento: '',
-        note: ''
-      });
-      added++;
-    }
-    m++;
-    if (m > 12) { m = 1; y++; }
-  }
-  if (added > 0) save(d);
-  return added;
-}
 
 function fmt(n) { return (+n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
 function fmtD(d) { if(!d) return '—'; const [y,m,g]=d.split('-'); return g+'/'+m+'/'+y; }
