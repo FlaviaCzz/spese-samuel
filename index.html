@@ -189,6 +189,7 @@
       <select id="r-anno"><option value="">Tutti gli anni</option></select>
     </div>
     <button class="btn-sec" style="width:100%;margin-bottom:8px;" onclick="esportaCSV()">Scarica CSV (apri in Excel)</button>
+    <button class="btn-sec" style="width:100%;margin-bottom:8px;border-color:#185FA5;color:#185FA5;" onclick="caricaCSV(true)">↓ Aggiorna da CSV (GitHub)</button>
     <button class="btn-sec" style="width:100%;" onclick="esportaTesto()">Genera testo per avvocato</button>
     <div id="tp" style="display:none;margin-top:12px;"></div>
     <hr class="div" style="margin-top:16px;">
@@ -233,9 +234,9 @@ const K = 'spese_samuel_v8';
 const CSV_URL = 'https://flaviaczz.github.io/spese-samuel/dati.csv';
 let _dbCache = null;
 
-function save(d) { 
+function save(d) {
   _dbCache = d;
-  localStorage.setItem(K, JSON.stringify(d)); 
+  localStorage.setItem(K, JSON.stringify(d));
 }
 
 function db() {
@@ -248,100 +249,80 @@ function db() {
   return _dbCache;
 }
 
-function parseDate(d) {
+const TIPO_MAP = { 'Spesa extra': 'ordinaria', 'Buono pasto': 'buonopasto', 'Mantenimento': 'mantenimento' };
+
+function parseDataCSV(d) {
   if (!d || d.trim() === '—' || d.trim() === '') return null;
   try {
     const p = d.trim().split('/');
-    if (p.length === 3) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    if (p.length === 3) return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
     if (d.includes('-')) return d.trim();
   } catch(e) {}
   return null;
 }
 
-const TIPO_MAP = { 'Buono pasto': 'buonopasto', 'Mantenimento': 'mantenimento', 'Spesa extra': 'ordinaria' };
-
 function parseCSV(text) {
-  // Format: Tipo;Voce;Data;Importo totale;Quota Daniel;Pagato;Stato;Note
-  text = text.replace(/^\uFEFF/, ''); // strip BOM
+  text = text.replace(/^\uFEFF/, '').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   const lines = text.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
-  const spese = [];
-  let id = 1;
+  const spese = []; let id = 1;
   for (let i = 1; i < lines.length; i++) {
     const cols = lines[i].split(';').map(c => c.replace(/^"|"$/g,'').trim());
-    if (cols.length < 2 || !cols[1]) continue;
+    if (!cols[1]) continue;
     const tipo = TIPO_MAP[cols[0]] || 'ordinaria';
     const importo = parseFloat(cols[3]) || 0;
-    const pagato = parseFloat(cols[5]) || 0;  // col 5 = Pagato
-    const note = cols[7] || '';                // col 7 = Note
-    spese.push({
-      id: id++,
-      voce: cols[1] || '',
-      data: parseDate(cols[2]),
-      importo: importo,
-      tipo: tipo,
-      pagato: pagato,
-      dataPagamento: pagato > 0 ? parseDate(cols[2]) : null,
-      notePagamento: '',
-      note: note === 'NaN' ? '' : note
-    });
+    const pagato = parseFloat(cols[5]) || 0;
+    const note = (cols[7] || '').replace(/^NaN$/,'');
+    spese.push({ id: id++, voce: cols[1], data: parseDataCSV(cols[2]),
+      importo, tipo, pagato,
+      dataPagamento: pagato > 0 ? parseDataCSV(cols[2]) : null,
+      notePagamento: '', note });
   }
   return spese;
 }
 
-async function loadFromCSV() {
+async function caricaCSV(mostraMessaggio) {
   try {
+    document.getElementById('hdate').textContent = 'Caricamento CSV...';
     const res = await fetch(CSV_URL + '?t=' + Date.now(), {cache: 'no-store'});
-    if (!res.ok) { console.warn('CSV fetch failed:', res.status); return false; }
-    let text = await res.text();
-    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n'); // normalize line endings
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
     const spese = parseCSV(text);
-    console.log('CSV loaded:', spese.length, 'voci');
-    if (spese.length === 0) return false;
+    if (spese.length === 0) throw new Error('CSV vuoto');
     const maxId = Math.max(...spese.map(s => s.id)) + 1;
-    const newDB = { spese, nextId: maxId, csvLoaded: true };
-    save(newDB);
+    save({ spese, nextId: maxId });
+    renderAll();
+    document.getElementById('hdate').textContent = 'Aggiornato al ' + new Date().toLocaleDateString('it-IT');
+    if (mostraMessaggio) toast(spese.length + ' voci caricate dal CSV');
     return true;
   } catch(e) {
-    console.warn('CSV load error:', e);
+    document.getElementById('hdate').textContent = 'Aggiornato al ' + new Date().toLocaleDateString('it-IT');
+    if (mostraMessaggio) toast('Errore caricamento CSV: ' + e.message);
     return false;
   }
 }
 
 async function initApp() {
-  // Show loading state
-  document.getElementById('hdate').textContent = 'Caricamento dati...';
-  
-  // Always try to load fresh CSV from GitHub
-  const loaded = await loadFromCSV();
-  
-  if (!loaded) {
-    // Fallback to localStorage
-    try {
-      const r = localStorage.getItem(K);
-      _dbCache = r ? JSON.parse(r) : { spese: [], nextId: 1 };
-    } catch(e) { 
-      _dbCache = { spese: [], nextId: 1 }; 
+  const r = localStorage.getItem(K);
+  if (!r) {
+    // First launch: try to load CSV
+    const ok = await caricaCSV(false);
+    if (!ok) {
+      _dbCache = { spese: [], nextId: 1 };
+      renderAll();
+      document.getElementById('hdate').textContent = 'Aggiornato al ' + new Date().toLocaleDateString('it-IT');
     }
+  } else {
+    // Data already in localStorage: use it
+    try { _dbCache = JSON.parse(r); } catch(e) { _dbCache = { spese: [], nextId: 1 }; }
+    renderAll();
+    document.getElementById('hdate').textContent = 'Aggiornato al ' + new Date().toLocaleDateString('it-IT');
   }
-  
-  // Render only after data is ready
-  renderAll();
-  
-  const today = new Date().toLocaleDateString('it-IT');
-  const status = loaded ? '✓ dati aggiornati dal CSV' : '⚠ dati locali (CSV non raggiunto)';
-  document.getElementById('hdate').textContent = today + ' · ' + status;
 }
-
-
-
-
-let curTab = 'ordinaria';
 
 
 function fmt(n) { return (+n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
 function fmtD(d) { if(!d) return '—'; const [y,m,g]=d.split('-'); return g+'/'+m+'/'+y; }
-
 function stato(s) {
   if(s.tipo==='buonopasto') return 'bp';
   if(s.tipo==='mantenimento') return s.pagato>=s.importo-0.01?'ok':s.pagato>0?'parz':'no';
@@ -698,9 +679,8 @@ function resetAll() {
   });
 }
 
-
-
 initApp();
+
 </script>
 </body>
 </html>
