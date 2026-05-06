@@ -1,1 +1,70 @@
-Tipo;Voce;Data;Importo totale;Quota Daniel;Pagato;Stato;Note
+﻿Tipo;Voce;Data;Importo totale;Quota Daniel;Pagato;Stato;Note
+Spesa extra;Gita Samuel Nr 1;22/04/2024;26.95;13.47;13.47;Saldato;
+Spesa extra;Gita Samuel Nr 2;09/05/2024;29.95;14.97;14.97;Saldato;* pagato con bonifico 05/03/2026 50€
+Spesa extra;Camp Estivo 01-12 Luglio 2024;14/05/2024;279.00;139.50;139.50;Saldato;
+Buono pasto;Buoni Pasto Gennaio 2024;01/02/2024;65.28;65.28;0.00;—;(3 € in più e padre comunica di metterli nel savaldanaio --> rif. Whatsapp 05/02/2024)
+Buono pasto;Buoni Pasto Febbraio 2024;01/03/2024;76.80;76.80;0.00;—;(11,60 € in più e padre comunica di non fare storie per i soldi in più --> rif. Whatsapp 05/03/2024)
+Buono pasto;Buoni Pasto Marzo 2024;01/04/2024;72.96;72.96;0.00;—;
+Buono pasto;Buoni Pasto Aprile 2024;01/05/2024;65.28;65.28;0.00;—;* pagato con bonifico 05/03/2026 50€
+Buono pasto;Buoni Pasto Maggio 2024;01/06/2024;80.64;80.64;0.00;—;
+Buono pasto;Buoni Pasto Giugno 2024;01/07/2024;72.96;72.96;0.00;—;
+Buono pasto;Buoni Pasto Settembre 2024;01/10/2024;62.40;62.40;0.00;—;(pagato 33,06 €, pagato €1,86 in più)
+Buono pasto;Buoni Pasto Ottobre 2024;01/11/2024;105.60;105.60;0.00;—;(pagato €63,09, mancano €0,81 - unico bonifico mensa ott+c.i.)
+Buono pasto;Buoni Pasto Novembre 2024;01/12/2024;96.00;96.00;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Dicembre 2024;22/12/2024;62.40;62.40;0.00;—;
+Buono pasto;Buoni Pasto Gennaio 2025;01/02/2025;91.20;91.20;0.00;—;
+Buono pasto;Buoni Pasto Febbraio 2025;28/02/2025;96.00;96.00;0.00;—;
+Buono pasto;Buoni Pasto Marzo 2025;31/03/2025;91.20;91.20;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Aprile 2025;30/04/2025;72.00;72.00;0.00;—;COMPRENSO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Maggio 2025;31/05/2025;52.80;52.80;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Giugno 2025;30/06/2025;96.00;96.00;0.00;—;inviata raccomandata in carcere COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Settembre 2025;01/10/2025;75.04;75.04;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Ottobre 2025;01/11/2025;123.28;123.28;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Novembre 2025;01/12/2025;107.20;107.20;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Dicembre 2025;01/01/2026;75.04;75.04;0.00;—;COMPRENSO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Gennaio 2026;01/02/2026;96.48;96.48;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Febbraio 2026;01/03/2026;101.84;101.84;0.00;—;COMPRESO NEL MANTENIMENTO
+Buono pasto;Buoni Pasto Marzo 2026;01/04/2026;116.58;116.58;0.00;—;COMPRESO NEL MANTENIMENTO
+Spesa extra;Camp Estivo 15-26 Luglio 2024;14/06/2024;252.00;126.00;126.00;Saldato;pagato 113.00€ mancano 13€ (compensati da €13,60 in più di Feb-Mar 2024)
+Spesa extra;Camp Estivo 26-30 Agosto 2024;19/08/2024;120.00;60.00;0.00;Da saldare;SOLLECITATO
+Spesa extra;Pre Post Scuola A.S. 24/25;19/08/2024;328.00;164.00;0.00;Da saldare;SOLLECITATO
+Spesa extra;Rinnovo C.I. Samuel;09/10/2024;22.21;11.11;11.10;Saldato;
+Spesa extra;Fondo Cassa Scuola Samuel;06/11/2024;10.00;5.00;5.00;Saldato;* pagato con bonifico 05/02/2026 50€
+Spesa extra;Assicurazione Scuola Samuel A.S. 24/25;07/12/2024;25.00;12.50;12.50;Saldato;* pagato con bonifico 05/02/2026 50€
+Spesa extra;Visita Oculistica Pediatrica;19/12/2024;159.50;79.75;79.75;Saldato;(pagato €247,95, mancano €13,70 - unico bonifico mantenimento dic, buoni pasto dic, ocu dic)
+Spesa extra;Visita Otorino + Fibroscopia;22/01/2025;152.00;76.00;0.00;Da saldare;SOLLECITATO
+Spesa extra;Spettacolo Teatrale Carnevale 2025;27/02/2025;11.00;5.50;5.50;Saldato;
+Spesa extra;Camp Estivo 2025 (Prime 4 Settimane Luglio);06/04/2025;500.00;250.00;250.00;Saldato;
+Spesa extra;Camp Estivo 2025 (5^ Settimana Luglio);29/05/2025;125.00;62.50;0.00;Da saldare;inviata raccomandata in carcere
+Spesa extra;Camp Estivo 2025 (6^ Settimana Settembre);11/07/2025;125.00;62.50;0.00;Da saldare;inviata raccomandata in carcere
+Spesa extra;Pre Post Scuola Samuel A.S. 25/26;20/08/2025;262.40;131.20;0.00;Da saldare;inviata raccomandata in carcere
+Spesa extra;Assicurazione Scuola A.S. 2025/2026;20/10/2025;26.00;13.00;0.00;Da saldare;
+Spesa extra;Astuccio (Amazon);20/10/2025;14.87;7.43;7.43;Saldato;* pagato con bonifico 05/02/2026 50€
+Mantenimento;Mantenimento Dic 2024;05/12/2024;150.00;150.00;150.00;Saldato;Daniel comunica di avere un problema con la banca --> rif Whatsapp 05/12/2024
+Mantenimento;Mantenimento Gennaio 2025;05/01/2025;150.00;150.00;150.00;Saldato;
+Mantenimento;Mantenimento Febbraio 2025;05/02/2025;150.00;150.00;150.00;Saldato;
+Mantenimento;Mantenimento Marzo 2025;05/03/2025;150.00;150.00;150.00;Saldato;ritardo 1 mese
+Mantenimento;Mantenimento Aprile 2025;17/04/2025;150.00;150.00;150.00;Saldato;
+Mantenimento;Mantenimento Giugno 2025;26/07/2025;150.00;150.00;150.00;Saldato;contanti tramite Alessandra Fusaro
+Mantenimento;Mantenimento Luglio 2025;26/07/2025;150.00;150.00;150.00;Saldato;contanti tramite Alessandra Fusaro
+Mantenimento;Mantenimento Maggio 2025;26/07/2025;150.00;150.00;150.00;Saldato;contanti tramite Alessandra Fusaro
+Mantenimento;Mantenimento Agosto 2025;05/08/2025;150.00;150.00;150.00;Saldato;inviata raccomandata in carcere * pagato con bonifico 10/12 750€
+Mantenimento;Mantenimento Settembre 2025;05/09/2025;150.00;150.00;150.00;Saldato;* pagato con bonifico 10/12 750€
+Mantenimento;Mantenimento Ottobre 2025;05/10/2025;150.00;150.00;150.00;Saldato;* pagato con bonifico 10/12 750€
+Mantenimento;Mantenimento Novembre 2025;05/11/2025;150.00;150.00;150.00;Saldato;* pagato con bonifico 10/12 750€
+Spesa extra;Quaderno Quadretti Per Materna;22/10/2025;1.50;0.75;0.75;Saldato;* pagato con bonifico 05/02/2026 50€
+Spesa extra;Gita Scolastico Belgiardino 07/11/2025;28/10/2025;19.00;9.50;9.50;Saldato;* pagato con bonifico 05/02/2026 50€
+Spesa extra;Fondo Cassa Scuola Samuel;10/11/2025;10.00;5.00;5.00;Saldato;* pagato con bonifico 05/02/2026 50€
+Spesa extra;Libro Ponte Scuola Per Materna;25/11/2025;12.00;6.00;6.00;Saldato;* pagato con bonifico 05/02/2026 50€
+Spesa extra;Spettacolo Teatrale Natale 2025;09/12/2025;6.00;3.00;0.00;Da saldare;* pagato con bonifico 05/02/2026 50€
+Spesa extra;"Spettacolo Teatrale Il Pesciolino Dei Desideri""""";29/01/2026;5.50;2.75;2.75;Saldato;* pagato con bonifico 05/02/2026 50€
+Spesa extra;Gita Aprile 2026 Parco Del Sol;15/04/2026;44.00;22.00;0.00;Da saldare;
+Spesa extra;Certificato Di Buona Salute Basket*;01/09/2025;40.00;20.00;20.00;Saldato;
+Spesa extra;Ecg A Riposo Per Basket*;01/09/2025;35.00;17.50;17.50;Saldato;
+Mantenimento;Mantenimento Dicembre 2025;05/12/2025;150.00;150.00;150.00;Saldato;* pagato con bonifico 10/12 750€
+Mantenimento;Mantenimento Gennaio 2026;05/01/2026;150.00;150.00;150.00;Saldato;
+Mantenimento;Mantenimento Febbraio 2026;05/02/2026;150.00;150.00;150.00;Saldato;
+Buono pasto;Buoni Pasto Aprile 2026;01/05/2026;91.12;91.12;0.00;—;
+Mantenimento;Mantenimento Marzo 2026;05/03/2026;160.50;160.50;160.50;Saldato;Adeguamento istat con avv. Farruggio
+Mantenimento;Mantenimento Aprile 2026;05/04/2026;160.50;160.50;160.50;Saldato;
+Mantenimento;Mantenimento Maggio 2026;05/05/2026;150.00;160.50;160.50;Saldato;
