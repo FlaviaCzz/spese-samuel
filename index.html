@@ -339,6 +339,7 @@ async function initApp() {
 let curTab = 'ordinaria';
 
 
+function fmt(n) { return (+n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
 function fmtD(d) { if(!d) return '—'; const [y,m,g]=d.split('-'); return g+'/'+m+'/'+y; }
 
 function stato(s) {
