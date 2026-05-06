@@ -262,6 +262,7 @@ const TIPO_MAP = { 'Buono pasto': 'buonopasto', 'Mantenimento': 'mantenimento', 
 
 function parseCSV(text) {
   // Format: Tipo;Voce;Data;Importo totale;Quota Daniel;Pagato;Stato;Note
+  text = text.replace(/^\uFEFF/, ''); // strip BOM
   const lines = text.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
   const spese = [];
@@ -290,16 +291,19 @@ function parseCSV(text) {
 
 async function loadFromCSV() {
   try {
-    const res = await fetch(CSV_URL + '?t=' + Date.now());
-    if (!res.ok) return false;
-    const text = await res.text();
+    const res = await fetch(CSV_URL + '?t=' + Date.now(), {cache: 'no-store'});
+    if (!res.ok) { console.warn('CSV fetch failed:', res.status); return false; }
+    let text = await res.text();
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n'); // normalize line endings
     const spese = parseCSV(text);
+    console.log('CSV loaded:', spese.length, 'voci');
     if (spese.length === 0) return false;
     const maxId = Math.max(...spese.map(s => s.id)) + 1;
     const newDB = { spese, nextId: maxId, csvLoaded: true };
     save(newDB);
     return true;
   } catch(e) {
+    console.warn('CSV load error:', e);
     return false;
   }
 }
@@ -314,7 +318,9 @@ async function initApp() {
     else { _dbCache = { spese: [], nextId: 1 }; }
   }
   renderAll();
-  document.getElementById('hdate').textContent = 'Aggiornato al ' + new Date().toLocaleDateString('it-IT');
+  const today = new Date().toLocaleDateString('it-IT');
+  const status = loaded ? '✓ dati aggiornati dal CSV' : '⚠ dati locali (CSV non raggiunto)';
+  document.getElementById('hdate').textContent = today + ' · ' + status;
 }
 
 
