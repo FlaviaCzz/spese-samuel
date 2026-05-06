@@ -192,6 +192,25 @@
     <button class="btn-sec" style="width:100%;" onclick="esportaTesto()">Genera testo per avvocato</button>
     <div id="tp" style="display:none;margin-top:12px;"></div>
     <hr class="div" style="margin-top:16px;">
+    <p class="stitle">Come aggiornare i dati su tutti i dispositivi</p>
+    <div style="background:var(--bg2);border-radius:var(--r);padding:12px 14px;font-size:13px;line-height:1.6;color:var(--text);">
+      <div style="margin-bottom:8px;">
+        <span style="font-weight:600;">1.</span> Usa l'app normalmente e inserisci le spese a mano.
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="font-weight:600;">2.</span> Quando vuoi salvare tutto, tocca <strong>Scarica CSV</strong> qui sopra.
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="font-weight:600;">3.</span> Rinomina il file scaricato da <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:12px;">spese_samuel.csv</code> a <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:12px;">dati.csv</code>.
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="font-weight:600;">4.</span> Vai su <strong>github.com/FlaviaCzz/spese-samuel</strong> → <em>Add file → Upload files</em> → carica <code style="background:var(--bg3);padding:1px 5px;border-radius:4px;font-size:12px;">dati.csv</code> → <em>Commit changes</em>.
+      </div>
+      <div>
+        <span style="font-weight:600;">5.</span> Riapri l'app da qualsiasi dispositivo — i dati sono aggiornati ovunque.
+      </div>
+    </div>
+    <hr class="div" style="margin-top:16px;">
     <p class="stitle" style="color:var(--red-tx);">Zona pericolosa</p>
     <button class="btn-del" style="width:100%;" onclick="resetAll()">Cancella tutti i dati</button>
   </div>
@@ -209,28 +228,101 @@
 </div>
 
 <script>
+
 const K = 'spese_samuel_v8';
-const SEED = {"spese":[],"nextId":1};
+const CSV_URL = 'https://flaviaczz.github.io/spese-samuel/dati.csv';
+let _dbCache = null;
+
+function save(d) { 
+  _dbCache = d;
+  localStorage.setItem(K, JSON.stringify(d)); 
+}
+
+function db() {
+  if (_dbCache) return _dbCache;
+  try {
+    const r = localStorage.getItem(K);
+    if (r) { _dbCache = JSON.parse(r); return _dbCache; }
+  } catch(e) {}
+  _dbCache = { spese: [], nextId: 1 };
+  return _dbCache;
+}
+
+function parseDate(d) {
+  if (!d || d.trim() === '—' || d.trim() === '') return null;
+  try {
+    const p = d.trim().split('/');
+    if (p.length === 3) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    if (d.includes('-')) return d.trim();
+  } catch(e) {}
+  return null;
+}
+
+const TIPO_MAP = { 'Buono pasto': 'buonopasto', 'Mantenimento': 'mantenimento', 'Spesa extra': 'ordinaria' };
+
+function parseCSV(text) {
+  // Format: Tipo;Voce;Data;Importo totale;Quota Daniel;Pagato;Stato;Note
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const spese = [];
+  let id = 1;
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(';').map(c => c.replace(/^"|"$/g,'').trim());
+    if (cols.length < 2 || !cols[1]) continue;
+    const tipo = TIPO_MAP[cols[0]] || 'ordinaria';
+    const importo = parseFloat(cols[3]) || 0;
+    const pagato = parseFloat(cols[5]) || 0;  // col 5 = Pagato
+    const note = cols[7] || '';                // col 7 = Note
+    spese.push({
+      id: id++,
+      voce: cols[1] || '',
+      data: parseDate(cols[2]),
+      importo: importo,
+      tipo: tipo,
+      pagato: pagato,
+      dataPagamento: pagato > 0 ? parseDate(cols[2]) : null,
+      notePagamento: '',
+      note: note === 'NaN' ? '' : note
+    });
+  }
+  return spese;
+}
+
+async function loadFromCSV() {
+  try {
+    const res = await fetch(CSV_URL + '?t=' + Date.now());
+    if (!res.ok) return false;
+    const text = await res.text();
+    const spese = parseCSV(text);
+    if (spese.length === 0) return false;
+    const maxId = Math.max(...spese.map(s => s.id)) + 1;
+    const newDB = { spese, nextId: maxId, csvLoaded: true };
+    save(newDB);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function initApp() {
+  // Always try to load fresh CSV from GitHub
+  const loaded = await loadFromCSV();
+  if (!loaded) {
+    // Fallback to localStorage
+    const r = localStorage.getItem(K);
+    if (r) { try { _dbCache = JSON.parse(r); } catch(e) { _dbCache = { spese: [], nextId: 1 }; } }
+    else { _dbCache = { spese: [], nextId: 1 }; }
+  }
+  renderAll();
+  document.getElementById('hdate').textContent = 'Aggiornato al ' + new Date().toLocaleDateString('it-IT');
+}
+
+
+
 
 let curTab = 'ordinaria';
 
-function db() {
-  try {
-    const r = localStorage.getItem(K);
-    if (r) {
-      const d = JSON.parse(r);
-      return d;
-    }
-    const d = JSON.parse(JSON.stringify(SEED));
-    localStorage.setItem(K, JSON.stringify(d));
-    return d;
-  } catch(e) { return JSON.parse(JSON.stringify(SEED)); }
-}
-function save(d) { localStorage.setItem(K, JSON.stringify(d)); }
 
-
-
-function fmt(n) { return (+n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
 function fmtD(d) { if(!d) return '—'; const [y,m,g]=d.split('-'); return g+'/'+m+'/'+y; }
 
 function stato(s) {
@@ -589,8 +681,9 @@ function resetAll() {
   });
 }
 
-document.getElementById('hdate').textContent='Aggiornato al '+new Date().toLocaleDateString('it-IT');
-renderAll();
+
+
+initApp();
 </script>
 </body>
 </html>
