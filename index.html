@@ -309,15 +309,25 @@ async function loadFromCSV() {
 }
 
 async function initApp() {
+  // Show loading state
+  document.getElementById('hdate').textContent = 'Caricamento dati...';
+  
   // Always try to load fresh CSV from GitHub
   const loaded = await loadFromCSV();
+  
   if (!loaded) {
     // Fallback to localStorage
-    const r = localStorage.getItem(K);
-    if (r) { try { _dbCache = JSON.parse(r); } catch(e) { _dbCache = { spese: [], nextId: 1 }; } }
-    else { _dbCache = { spese: [], nextId: 1 }; }
+    try {
+      const r = localStorage.getItem(K);
+      _dbCache = r ? JSON.parse(r) : { spese: [], nextId: 1 };
+    } catch(e) { 
+      _dbCache = { spese: [], nextId: 1 }; 
+    }
   }
+  
+  // Render only after data is ready
   renderAll();
+  
   const today = new Date().toLocaleDateString('it-IT');
   const status = loaded ? '✓ dati aggiornati dal CSV' : '⚠ dati locali (CSV non raggiunto)';
   document.getElementById('hdate').textContent = today + ' · ' + status;
