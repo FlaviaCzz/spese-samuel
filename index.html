@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Spese Samuel">
+<title>Spese Samuel</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #f0efeb;
+    --text: #1a1a1a; --text2: #6b6b6b; --text3: #9b9b9b;
+    --border: rgba(0,0,0,0.10); --border2: rgba(0,0,0,0.18);
+    --r: 8px; --rl: 12px;
+    --green-bg: #EAF3DE; --green-tx: #3B6D11;
+    --amber-bg: #FAEEDA; --amber-tx: #854F0B;
+    --red-bg: #FCEBEB; --red-tx: #A32D2D;
+    --blue-bg: #E6F1FB; --blue-tx: #185FA5;
+    --purple-bg: #EEEDFE; --purple-tx: #3C3489;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e; --bg2: #2c2c2e; --bg3: #3a3a3c;
+      --text: #f2f2f7; --text2: #aeaeb2; --text3: #636366;
+      --border: rgba(255,255,255,0.10); --border2: rgba(255,255,255,0.18);
+      --green-bg: #173404; --green-tx: #C0DD97;
+      --amber-bg: #412402; --amber-tx: #FAC775;
+      --red-bg: #501313; --red-tx: #F7C1C1;
+      --blue-bg: #042C53; --blue-tx: #B5D4F4;
+      --purple-bg: #26215C; --purple-tx: #CECBF6;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; color: var(--text); background: var(--bg3); min-height: 100vh; }
+  .app { max-width: 480px; margin: 0 auto; background: var(--bg3); min-height: 100vh; padding-bottom: 80px; }
+  .header { padding: 14px 16px 10px; background: var(--bg); border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 20; }
+  .header h1 { font-size: 17px; font-weight: 600; }
+  .header p { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .nav { display: flex; gap: 3px; padding: 9px 12px; background: var(--bg); border-bottom: 0.5px solid var(--border); position: sticky; top: 53px; z-index: 19; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn { flex: 1; min-width: 72px; padding: 7px 6px; font-size: 12px; border: 0.5px solid var(--border2); border-radius: var(--r); background: transparent; color: var(--text2); cursor: pointer; text-align: center; white-space: nowrap; }
+  .nav-btn.active { background: var(--bg2); color: var(--text); font-weight: 600; border-color: var(--border2); }
+  .section { display: none; padding: 14px 12px; }
+  .section.active { display: block; }
+  label.lbl { font-size: 12px; color: var(--text2); margin-bottom: 4px; display: block; }
+  .field { margin-bottom: 11px; }
+  input, select, textarea { width: 100%; font-size: 14px; font-family: inherit; padding: 9px 11px; border: 0.5px solid var(--border2); border-radius: var(--r); background: var(--bg); color: var(--text); outline: none; -webkit-appearance: none; appearance: none; }
+  input[type=checkbox] { width: 18px; height: 18px; padding: 0; border: 2px solid var(--border2); border-radius: 4px; background: var(--bg); -webkit-appearance: checkbox; appearance: checkbox; flex-shrink: 0; accent-color: #378ADD; cursor: pointer; }
+  input:focus, select:focus, textarea:focus { border-color: #378ADD; box-shadow: 0 0 0 2px rgba(55,138,221,0.15); }
+  textarea { resize: vertical; min-height: 56px; }
+  .btn-primary { width: 100%; padding: 12px; font-size: 15px; font-weight: 600; background: var(--text); color: var(--bg); border: none; border-radius: var(--r); cursor: pointer; margin-top: 4px; }
+  .btn-primary:active { opacity: 0.85; }
+  .btn-sec { padding: 8px 14px; font-size: 13px; border: 0.5px solid var(--border2); border-radius: var(--r); background: transparent; color: var(--text); cursor: pointer; }
+  .btn-sec:active { background: var(--bg2); }
+  .btn-del { padding: 6px 12px; font-size: 12px; border: 0.5px solid var(--red-tx); border-radius: var(--r); background: transparent; color: var(--red-tx); cursor: pointer; }
+  .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .stat { background: var(--bg2); border-radius: var(--r); padding: 10px 12px; }
+  .stat .sl { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+  .stat .sv { font-size: 18px; font-weight: 600; }
+  .stat.full { grid-column: span 2; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--rl); padding: 11px 13px; margin-bottom: 8px; }
+  .card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .ct { font-size: 14px; font-weight: 600; }
+  .cs { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .b-ok { background: var(--green-bg); color: var(--green-tx); }
+  .b-parz { background: var(--amber-bg); color: var(--amber-tx); }
+  .b-no { background: var(--red-bg); color: var(--red-tx); }
+  .b-bp { background: var(--blue-bg); color: var(--blue-tx); }
+  .b-mant { background: var(--purple-bg); color: var(--purple-tx); }
+  hr.div { border: none; border-top: 0.5px solid var(--border); margin: 9px 0; }
+  .stitle { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 9px; margin-top: 2px; }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 9px 18px; border-radius: var(--r); font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .empty { text-align: center; padding: 24px; color: var(--text2); font-size: 13px; }
+  .dr { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+  .dr .dk { color: var(--text2); }
+  .bv-wrap { border: 0.5px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 8px; }
+  .bv-item { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-bottom: 0.5px solid var(--border); font-size: 13px; background: var(--bg); }
+  .bv-item:last-child { border-bottom: none; }
+  .bv-item input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; }
+  .bv-nome { flex: 1; }
+  .bv-quota { color: var(--text2); font-size: 12px; white-space: nowrap; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .filter-row select { flex: 1; font-size: 12px; padding: 7px 9px; }
+  .rib-box { font-size: 12px; margin-top: 6px; padding: 9px 11px; background: var(--bg2); border-radius: var(--r); }
+  .prev-box { background: var(--bg2); border-radius: var(--r); padding: 9px 11px; font-size: 13px; }
+  .tab-row { display: flex; gap: 4px; margin-bottom: 13px; }
+  .tab-row button { flex: 1; padding: 7px 4px; font-size: 12px; border: 0.5px solid var(--border2); border-radius: var(--r); background: transparent; color: var(--text2); cursor: pointer; }
+  .tab-row button.active { background: var(--bg2); color: var(--text); font-weight: 600; }
+  .mono { font-family: 'Courier New', monospace; font-size: 11px; white-space: pre-wrap; background: var(--bg2); border-radius: var(--r); padding: 11px; max-height: 280px; overflow-y: auto; color: var(--text); }
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: flex-end; justify-content: center; }
+  .modal-box { background: var(--bg); border-radius: var(--rl) var(--rl) 0 0; padding: 20px 16px 32px; width: 100%; max-width: 480px; }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-actions button { flex: 1; padding: 11px; font-size: 14px; font-weight: 600; border: none; border-radius: var(--r); cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Spese Samuel</h1>
+    <p id="hdate"></p>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showSec('riepilogo')">Riepilogo</button>
+    <button class="nav-btn" onclick="showSec('nuova')">+ Aggiungi</button>
+    <button class="nav-btn" onclick="showSec('bonifico')">Pagamento</button>
+    <button class="nav-btn" onclick="showSec('report')">Report</button>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <!-- RIEPILOGO -->
+  <div id="sec-riepilogo" class="section active">
+    <div style="position:relative;margin-bottom:10px;">
+      <input type="text" id="search" placeholder="Cerca spesa..." oninput="renderAll()" style="padding-left:34px;">
+      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.4;" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <button id="search-clear" onclick="clearSearch()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;color:var(--text2);cursor:pointer;padding:2px 4px;">✕</button>
+    </div>
+    <div class="tab-row">
+      <button class="active" onclick="switchTab('ordinaria',this)">Spese extra</button>
+      <button onclick="switchTab('buonopasto',this)">Buoni pasto</button>
+      <button onclick="switchTab('mantenimento',this)">Mantenimento</button>
+    </div>
+    <div id="tab-ordinaria">
+      <div class="stats-grid" id="so"></div>
+      <div class="filter-row">
+        <select id="f-stato" onchange="renderOrd()"><option value="">Tutti gli stati</option><option value="no">Da saldare</option><option value="parz">Parziale</option><option value="ok">Saldato</option></select>
+        <select id="f-anno" onchange="renderOrd()"><option value="">Tutti gli anni</option></select>
+      </div>
+      <div id="lo"></div>
+    </div>
+    <div id="tab-buonopasto" style="display:none;">
+      <div class="stats-grid" id="sbp"></div>
+      <div id="lbp"></div>
+    </div>
+    <div id="tab-mantenimento" style="display:none;">
+      <div class="stats-grid" id="sm"></div>
+      <div id="lm"></div>
+    </div>
+  </div>
+
+  <!-- NUOVA -->
+  <div id="sec-nuova" class="section">
+    <p class="stitle">Nuova voce</p>
+    <div class="field"><label class="lbl">Tipo</label>
+      <select id="n-tipo" onchange="onTipo()">
+        <option value="ordinaria">Spesa extra (50/50)</option>
+        <option value="buonopasto">Buono pasto</option>
+        <option value="mantenimento">Assegno di mantenimento</option>
+      </select>
+    </div>
+    <div class="field"><label class="lbl">Descrizione</label><input type="text" id="n-voce" placeholder="Es. Camp estivo Luglio 2025"></div>
+    <div class="field"><label class="lbl">Data</label><input type="date" id="n-data"></div>
+    <div class="field"><label class="lbl" id="n-imp-lbl">Importo totale (€)</label>
+      <input type="number" id="n-imp" step="0.01" min="0" placeholder="0.00" oninput="onImp()">
+    </div>
+    <div id="n-prev" style="display:none;" class="field">
+      <div class="prev-box">
+        <div class="dr"><span class="dk">Quota tua (50%)</span><span id="pm"></span></div>
+        <div class="dr"><span class="dk">Quota Daniel (50%)</span><span id="pd"></span></div>
+      </div>
+    </div>
+    <div class="field"><label class="lbl">Note (opzionale)</label><textarea id="n-note" placeholder="Rif. WhatsApp, bonifico, ecc."></textarea></div>
+    <button class="btn-primary" onclick="salva()">Salva</button>
+  </div>
+
+  <!-- BONIFICO / PAGAMENTO -->
+  <div id="sec-bonifico" class="section">
+    <p class="stitle">Registra pagamento Daniel</p>
+    <div class="field"><label class="lbl">Data del pagamento</label><input type="date" id="b-data"></div>
+    <div class="field"><label class="lbl">Importo ricevuto (€)</label><input type="number" id="b-imp" step="0.01" min="0" placeholder="0.00" oninput="onBonImp()"></div>
+    <div class="field"><label class="lbl">Note (opzionale)</label><input type="text" id="b-note" placeholder="Es. bonifico feb 2026"></div>
+    <p class="stitle" style="margin-top:4px;">Seleziona le voci da saldare</p>
+    <div class="bv-wrap" id="bv-list"></div>
+    <div class="rib-box" id="rib" style="display:none;"></div>
+    <button class="btn-primary" onclick="applicaPag()" style="margin-top:10px;">Applica pagamento</button>
+  </div>
+
+  <!-- REPORT -->
+  <div id="sec-report" class="section">
+    <p class="stitle">Riepilogo e export</p>
+    <div class="stats-grid" id="rs"></div>
+    <hr class="div">
+    <div class="field"><label class="lbl">Filtra per anno</label>
+      <select id="r-anno"><option value="">Tutti gli anni</option></select>
+    </div>
+    <button class="btn-sec" style="width:100%;margin-bottom:8px;" onclick="esportaCSV()">Scarica CSV (apri in Excel)</button>
+    <button class="btn-sec" style="width:100%;" onclick="esportaTesto()">Genera testo per avvocato</button>
+    <div id="tp" style="display:none;margin-top:12px;"></div>
+    <hr class="div" style="margin-top:16px;">
+    <p class="stitle" style="color:var(--red-tx);">Zona pericolosa</p>
+    <button class="btn-del" style="width:100%;" onclick="resetAll()">Cancella tutti i dati</button>
+  </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div id="modal-title" class="modal-title"></div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button style="background:var(--bg2);color:var(--text);" onclick="closeModal()">Annulla</button>
+      <button id="modal-confirm" onclick="confirmModal()">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const K = 'spese_samuel_v8';
+const SEED = {"spese":[],"nextId":1};
+
+let curTab = 'ordinaria';
+
+function db() {
+  try {
+    const r = localStorage.getItem(K);
+    if (r) {
+      const d = JSON.parse(r);
+      return d;
+    }
+    const d = JSON.parse(JSON.stringify(SEED));
+    localStorage.setItem(K, JSON.stringify(d));
+    return d;
+  } catch(e) { return JSON.parse(JSON.stringify(SEED)); }
+}
+function save(d) { localStorage.setItem(K, JSON.stringify(d)); }
+
+
+
+function fmt(n) { return (+n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
+function fmtD(d) { if(!d) return '—'; const [y,m,g]=d.split('-'); return g+'/'+m+'/'+y; }
+
+function stato(s) {
+  if(s.tipo==='buonopasto') return 'bp';
+  if(s.tipo==='mantenimento') return s.pagato>=s.importo-0.01?'ok':s.pagato>0?'parz':'no';
+  const q=s.importo/2; if(s.pagato<=0) return 'no';
+  return Math.abs(s.pagato-q)<0.01?'ok':'parz';
+}
+
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function showSec(id) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  const m={riepilogo:0,nuova:1,bonifico:2,report:3};
+  document.querySelectorAll('.nav-btn')[m[id]].classList.add('active');
+  if(id==='riepilogo') renderAll();
+  if(id==='bonifico') renderBV();
+  if(id==='report') renderReport();
+}
+
+function switchTab(tab, btn) {
+  curTab=tab;
+  document.querySelectorAll('.tab-row button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-ordinaria').style.display=tab==='ordinaria'?'block':'none';
+  document.getElementById('tab-buonopasto').style.display=tab==='buonopasto'?'block':'none';
+  document.getElementById('tab-mantenimento').style.display=tab==='mantenimento'?'block':'none';
+}
+
+function renderAll() { renderOrd(); renderBP(); renderMant(); }
+
+function getSearch() {
+  const el = document.getElementById('search');
+  const v = el ? el.value.trim().toLowerCase() : '';
+  const clr = document.getElementById('search-clear');
+  if (clr) clr.style.display = v ? 'block' : 'none';
+  return v;
+}
+function clearSearch() {
+  const el = document.getElementById('search');
+  if (el) el.value = '';
+  const clr = document.getElementById('search-clear');
+  if (clr) clr.style.display = 'none';
+  renderAll();
+}
+
+function renderOrd() {
+  const d=db(); const fs=document.getElementById('f-stato').value; const fa=document.getElementById('f-anno').value;
+  const ord=d.spese.filter(s=>s.tipo==='ordinaria');
+  const anni=[...new Set(ord.map(s=>s.data?s.data.slice(0,4):null).filter(Boolean))].sort().reverse();
+  const sel=document.getElementById('f-anno'); const cur=sel.value;
+  sel.innerHTML='<option value="">Tutti gli anni</option>'+anni.map(a=>`<option value="${a}"${a===cur?' selected':''}>${a}</option>`).join('');
+  const totS=ord.reduce((a,s)=>a+s.importo,0);
+  const totD=ord.reduce((a,s)=>a+s.importo/2,0);
+  const totP=ord.reduce((a,s)=>a+(s.pagato||0),0);
+  const rim=totD-totP;
+  document.getElementById('so').innerHTML=`
+    <div class="stat"><div class="sl">Totale spese extra</div><div class="sv">${fmt(totS)}</div></div>
+    <div class="stat"><div class="sl">Quota Daniel (50%)</div><div class="sv">${fmt(totD)}</div></div>
+    <div class="stat"><div class="sl">Pagato da Daniel</div><div class="sv">${fmt(totP)}</div></div>
+    <div class="stat"><div class="sl">Da ricevere</div><div class="sv" style="color:${rim>0.01?'var(--red-tx)':'var(--green-tx)'}">${fmt(Math.max(0,rim))}</div></div>`;
+  let fl=ord;
+  if(fa) fl=fl.filter(s=>s.data&&s.data.startsWith(fa));
+  if(fs) fl=fl.filter(s=>stato(s)===fs);
+  const q=getSearch(); if(q) fl=fl.filter(s=>(s.voce+' '+(s.note||'')).toLowerCase().includes(q));
+  fl=fl.sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const el=document.getElementById('lo');
+  if(!fl.length){el.innerHTML='<div class="empty">Nessuna spesa corrispondente</div>';return;}
+  el.innerHTML=fl.map(s=>{
+    const st=stato(s); const q=s.importo/2; const r=q-(s.pagato||0);
+    const bc=st==='ok'?'b-ok':st==='parz'?'b-parz':'b-no';
+    const bt=st==='ok'?'Saldato':st==='parz'?'Parziale':'Da saldare';
+    return `<div class="card">
+      <div class="card-row"><div><div class="ct">${s.voce}</div><div class="cs">${fmtD(s.data)}</div></div><span class="badge ${bc}">${bt}</span></div>
+      <hr class="div">
+      <div class="dr"><span class="dk">Totale spesa</span><span>${fmt(s.importo)}</span></div>
+      <div class="dr"><span class="dk">Quota Daniel</span><span>${fmt(q)}</span></div>
+      <div class="dr"><span class="dk">Pagato</span><span>${fmt(s.pagato||0)}</span></div>
+      ${st!=='ok'?`<div class="dr"><span class="dk">Da ricevere</span><span style="color:var(--red-tx);font-weight:600;">${fmt(Math.max(0,r))}</span></div>`:''}
+      ${s.note?`<div style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.4;">${s.note}</div>`:''}
+      <div style="display:flex;gap:6px;margin-top:9px;">
+        <button class="btn-sec" style="flex:1;font-size:12px;padding:7px;" onclick="editVoce(${s.id})">Modifica</button>
+        <button class="btn-del" style="font-size:12px;padding:7px 11px;" onclick="del(${s.id})">Elimina</button>
+      </div></div>`;
+  }).join('');
+}
+
+function renderBP() {
+  const d=db(); const q=getSearch();
+  let bp=d.spese.filter(s=>s.tipo==='buonopasto');
+  if(q) bp=bp.filter(s=>(s.voce+' '+(s.note||'')).toLowerCase().includes(q));
+  const tot=d.spese.filter(s=>s.tipo==='buonopasto').reduce((a,s)=>a+s.importo,0);
+  document.getElementById('sbp').innerHTML=`<div class="stat full"><div class="sl">Totale buoni pasto (esclusi dal conteggio spese extra)</div><div class="sv">${fmt(tot)}</div></div>`;
+  document.getElementById('lbp').innerHTML=!bp.length?'<div class="empty">Nessun buono pasto</div>':
+    bp.sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(s=>`
+    <div class="card">
+      <div class="card-row"><div><div class="ct">${s.voce}</div><div class="cs">${fmtD(s.data)}</div></div><span class="badge b-bp">${fmt(s.importo)}</span></div>
+      ${s.note?`<div style="font-size:11px;color:var(--text2);margin-top:6px;">${s.note}</div>`:''}
+      <div style="margin-top:9px;"><button class="btn-del" style="font-size:12px;padding:6px 11px;" onclick="del(${s.id})">Elimina</button></div>
+    </div>`).join('');
+}
+
+function renderMant() {
+  const d=db(); const q=getSearch();
+  const mAll=d.spese.filter(s=>s.tipo==='mantenimento');
+  let m=q?mAll.filter(s=>(s.voce+' '+(s.note||'')).toLowerCase().includes(q)):mAll;
+  const tot=mAll.reduce((a,s)=>a+s.importo,0); const pag=mAll.reduce((a,s)=>a+(s.pagato||0),0);
+  const ns=mAll.filter(s=>stato(s)==='ok').length;
+  document.getElementById('sm').innerHTML=`
+    <div class="stat"><div class="sl">Totale atteso</div><div class="sv">${fmt(tot)}</div></div>
+    <div class="stat"><div class="sl">Ricevuto</div><div class="sv">${fmt(pag)}</div></div>
+    <div class="stat full"><div class="sl">Rate pagate: ${ns} su ${m.length}</div><div class="sv" style="color:${tot-pag>0.01?'var(--red-tx)':'var(--green-tx)'}">Ancora da ricevere: ${fmt(Math.max(0,tot-pag))}</div></div>`;
+  document.getElementById('lm').innerHTML=!m.length?'<div class="empty">Nessun mantenimento</div>':
+    m.sort((a,b)=>(b.data||'').localeCompare(a.data||'')).map(s=>{
+    const st=stato(s); const bc=st==='ok'?'b-ok':st==='parz'?'b-parz':'b-no';
+    const bt=st==='ok'?'Pagato':st==='parz'?'Parziale':'Non pagato';
+    return `<div class="card">
+      <div class="card-row"><div><div class="ct">${s.voce}</div><div class="cs">${fmtD(s.data)}</div></div><span class="badge ${bc}">${bt}</span></div>
+      <hr class="div">
+      <div class="dr"><span class="dk">Importo</span><span>${fmt(s.importo)}</span></div>
+      <div class="dr"><span class="dk">Ricevuto</span><span>${fmt(s.pagato||0)}</span></div>
+      ${s.note?`<div style="font-size:11px;color:var(--text2);margin-top:6px;">${s.note}</div>`:''}
+      <div style="display:flex;gap:6px;margin-top:9px;">
+        <button class="btn-sec" style="flex:1;font-size:12px;padding:7px;" onclick="togMant(${s.id})">${st==='ok'?'✓ Pagato':'Segna pagato'}</button>
+        <button class="btn-sec" style="font-size:12px;padding:7px 11px;" onclick="editMant(${s.id})">Modifica</button>
+        <button class="btn-del" style="font-size:12px;padding:7px 11px;" onclick="del(${s.id})">Elimina</button>
+      </div></div>`;
+  }).join('');
+}
+
+function togMant(id) {
+  const d=db(); const s=d.spese.find(x=>x.id===id); if(!s) return;
+  s.pagato=stato(s)==='ok'?0:s.importo; save(d); renderMant(); toast('Stato aggiornato');
+}
+
+function onTipo() {
+  const t=document.getElementById('n-tipo').value;
+  document.getElementById('n-imp-lbl').textContent=t==='mantenimento'?'Importo assegno (€)':'Importo totale (€)';
+  onImp();
+}
+
+function onImp() {
+  const v=parseFloat(document.getElementById('n-imp').value)||0;
+  const t=document.getElementById('n-tipo').value;
+  const pv=document.getElementById('n-prev');
+  if(t==='ordinaria'&&v>0){pv.style.display='block';document.getElementById('pm').textContent=fmt(v/2);document.getElementById('pd').textContent=fmt(v/2);}
+  else pv.style.display='none';
+}
+
+function salva() {
+  const voce=document.getElementById('n-voce').value.trim();
+  const data=document.getElementById('n-data').value||null;
+  const importo=parseFloat(document.getElementById('n-imp').value);
+  const tipo=document.getElementById('n-tipo').value;
+  const note=document.getElementById('n-note').value.trim();
+  if(!voce){toast('Inserisci la descrizione');return;}
+  if(!importo||importo<=0){toast('Inserisci un importo valido');return;}
+  const d=db();
+  d.spese.push({id:d.nextId++,voce,data,importo,tipo,pagato:0,dataPagamento:null,notePagamento:'',note});
+  save(d);
+  ['n-voce','n-imp','n-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('n-data').value='';
+  document.getElementById('n-prev').style.display='none';
+  document.getElementById('n-tipo').value='ordinaria';
+  toast('Voce salvata'); renderAll();
+}
+
+function editVoce(id) {
+  const d=db(); const s=d.spese.find(x=>x.id===id); if(!s) return;
+  showModal({
+    title: 'Modifica importo',
+    body: `<div class="field"><label class="lbl">Importo totale (€)</label><input type="number" id="m-imp" step="0.01" min="0" value="${s.importo}" style="font-size:16px;"></div>`,
+    confirmLabel: 'Salva',
+    onConfirm: () => {
+      const imp=parseFloat(document.getElementById('m-imp').value);
+      if(isNaN(imp)||imp<=0){toast('Importo non valido');return;}
+      s.importo=imp; save(d); renderOrd(); toast('Aggiornato');
+    }
+  });
+}
+
+function editMant(id) {
+  const d=db(); const s=d.spese.find(x=>x.id===id); if(!s) return;
+  showModal({
+    title: 'Modifica mantenimento',
+    body: `
+      <div class="field"><label class="lbl">Descrizione</label><input type="text" id="m-voce" value="${s.voce}"></div>
+      <div class="field"><label class="lbl">Importo (€)</label><input type="number" id="m-imp" step="0.01" min="0" value="${s.importo}" style="font-size:16px;"></div>
+      <div class="field"><label class="lbl">Note</label><input type="text" id="m-note" value="${s.note||''}"></div>`,
+    confirmLabel: 'Salva',
+    onConfirm: () => {
+      const imp=parseFloat(document.getElementById('m-imp').value);
+      const voce=document.getElementById('m-voce').value.trim();
+      const note=document.getElementById('m-note').value.trim();
+      if(isNaN(imp)||imp<=0){toast('Importo non valido');return;}
+      if(!voce){toast('Inserisci la descrizione');return;}
+      s.importo=imp; s.voce=voce; s.note=note; save(d); renderMant(); toast('Aggiornato');
+    }
+  });
+}
+
+function del(id) {
+  showModal({
+    title: 'Elimina voce',
+    body: '<p style="font-size:14px;color:var(--text2);">Sei sicura di voler eliminare questa voce? L\'operazione non è reversibile.</p>',
+    confirmLabel: 'Elimina',
+    confirmDanger: true,
+    onConfirm: () => {
+      const d=db(); d.spese=d.spese.filter(s=>s.id!==id); save(d); renderAll(); toast('Eliminato');
+    }
+  });
+}
+
+// ----- Modal generico -----
+function showModal({title, body, confirmLabel, confirmDanger, onConfirm}) {
+  document.getElementById('modal-overlay').style.display='flex';
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=body;
+  const btn=document.getElementById('modal-confirm');
+  btn.textContent=confirmLabel||'Conferma';
+  btn.style.background=confirmDanger?'var(--red-tx)':'var(--text)';
+  btn.style.color='var(--bg)';
+  btn._cb=onConfirm;
+  // focus first input if present
+  setTimeout(()=>{ const inp=document.querySelector('#modal-body input'); if(inp) inp.focus(); },100);
+}
+function closeModal() { document.getElementById('modal-overlay').style.display='none'; }
+function confirmModal() { const btn=document.getElementById('modal-confirm'); if(btn._cb) btn._cb(); closeModal(); }
+
+function renderBV() {
+  const d=db();
+  const da=d.spese.filter(s=>s.tipo==='ordinaria'&&stato(s)!=='ok').sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const el=document.getElementById('bv-list');
+  if(!da.length){el.innerHTML='<div class="bv-item" style="justify-content:center;color:var(--text2);">Tutte le voci sono saldate</div>';return;}
+  el.innerHTML=da.map(s=>{
+    const r=s.tipo==='mantenimento'?s.importo-(s.pagato||0):s.importo/2-(s.pagato||0);
+    const tag=s.tipo==='mantenimento'?` <span class="badge b-mant" style="font-size:10px;padding:2px 6px;">mant.</span>`:'';
+    return `<div class="bv-item"><input type="checkbox" id="bv-${s.id}" value="${s.id}" onchange="onBonImp()"><label for="bv-${s.id}" class="bv-nome">${s.voce}${tag}</label><span class="bv-quota">${fmt(r)}</span></div>`;
+  }).join('');
+  onBonImp();
+}
+
+function onBonImp() {
+  const imp=parseFloat(document.getElementById('b-imp').value)||0;
+  const chk=[...document.querySelectorAll('#bv-list input:checked')].map(i=>parseInt(i.value));
+  const d=db(); let tot=0;
+  chk.forEach(id=>{const s=d.spese.find(x=>x.id===id);if(s)tot+=s.tipo==='mantenimento'?s.importo-(s.pagato||0):s.importo/2-(s.pagato||0);});
+  const rib=document.getElementById('rib');
+  if(chk.length>0||imp>0){
+    rib.style.display='block'; const diff=imp-tot;
+    rib.innerHTML=`<div class="dr"><span class="dk">Importo bonifico</span><span>${fmt(imp)}</span></div>
+    <div class="dr"><span class="dk">Quote selezionate</span><span>${fmt(tot)}</span></div>
+    <div class="dr"><span class="dk" style="font-weight:600;">Differenza</span><span style="color:${Math.abs(diff)<0.01?'var(--green-tx)':diff<0?'var(--red-tx)':'var(--amber-tx)'};font-weight:600;">${diff>=0?'+':''}${fmt(diff)}</span></div>`;
+  } else rib.style.display='none';
+}
+
+function applicaPag() {
+  const imp=parseFloat(document.getElementById('b-imp').value);
+  const data=document.getElementById('b-data').value;
+  const note=document.getElementById('b-note').value.trim();
+  const chk=[...document.querySelectorAll('#bv-list input:checked')].map(i=>parseInt(i.value));
+  if(!data){toast('Inserisci la data');return;}
+  if(!imp||imp<=0){toast('Inserisci un importo valido');return;}
+  if(!chk.length){toast('Seleziona almeno una voce');return;}
+  const d=db(); let rim=imp;
+  chk.forEach(id=>{
+    const s=d.spese.find(x=>x.id===id); if(!s||rim<=0.001) return;
+    const dovuto=s.tipo==='mantenimento'?s.importo-(s.pagato||0):s.importo/2-(s.pagato||0);
+    const v=Math.min(rim,dovuto); s.pagato=(s.pagato||0)+v; s.dataPagamento=data;
+    if(note) s.notePagamento=(s.notePagamento?s.notePagamento+' / ':'')+note;
+    rim-=v;
+  });
+  save(d);
+  ['b-imp','b-data','b-note'].forEach(id=>document.getElementById(id).value='');
+  renderBV(); renderAll();
+  toast(rim>0.01?'Applicato ('+fmt(rim)+' non attribuiti)':'Pagamento registrato');
+}
+
+function renderReport() {
+  const d=db();
+  const ord=d.spese.filter(s=>s.tipo==='ordinaria');
+  const m=d.spese.filter(s=>s.tipo==='mantenimento');
+  const totD=ord.reduce((a,s)=>a+s.importo/2,0); const totPO=ord.reduce((a,s)=>a+(s.pagato||0),0);
+  const totM=m.reduce((a,s)=>a+s.importo,0); const totPM=m.reduce((a,s)=>a+(s.pagato||0),0);
+  document.getElementById('rs').innerHTML=`
+    <div class="stat"><div class="sl">Spese extra (quota Daniel)</div><div class="sv">${fmt(totD)}</div></div>
+    <div class="stat"><div class="sl">Pagato su spese extra</div><div class="sv">${fmt(totPO)}</div></div>
+    <div class="stat"><div class="sl">Mantenimento atteso</div><div class="sv">${fmt(totM)}</div></div>
+    <div class="stat"><div class="sl">Mantenimento ricevuto</div><div class="sv">${fmt(totPM)}</div></div>`;
+  const anni=[...new Set(d.spese.map(s=>s.data?s.data.slice(0,4):null).filter(Boolean))].sort().reverse();
+  const sel=document.getElementById('r-anno'); const cur=sel.value;
+  sel.innerHTML='<option value="">Tutti gli anni</option>'+anni.map(a=>`<option value="${a}"${a===cur?' selected':''}>${a}</option>`).join('');
+}
+
+function esportaCSV() {
+  const d=db(); const anno=document.getElementById('r-anno').value;
+  let sp=d.spese; if(anno) sp=sp.filter(s=>s.data&&s.data.startsWith(anno));
+  let csv='Tipo;Voce;Data;Importo totale;Quota Daniel;Pagato;Stato;Note\n';
+  sp.forEach(s=>{
+    const tl=s.tipo==='ordinaria'?'Spesa extra':s.tipo==='buonopasto'?'Buono pasto':'Mantenimento';
+    const q=s.tipo==='mantenimento'?s.importo:s.tipo==='buonopasto'?s.importo:s.importo/2;
+    const st=s.tipo==='buonopasto'?'—':stato(s)==='ok'?'Saldato':stato(s)==='parz'?'Parziale':'Da saldare';
+    csv+=[tl,s.voce,fmtD(s.data),s.importo.toFixed(2),q.toFixed(2),(s.pagato||0).toFixed(2),st,s.note||''].map(v=>`"${v}"`).join(';')+'\n';
+  });
+  const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const u=URL.createObjectURL(b); const a=document.createElement('a');
+  a.href=u; a.download='spese_samuel'+(anno?'_'+anno:'')+'.csv'; a.click();
+  toast('CSV scaricato');
+}
+
+function esportaTesto() {
+  const d=db(); const anno=document.getElementById('r-anno').value;
+  let ord=d.spese.filter(s=>s.tipo==='ordinaria');
+  let m=d.spese.filter(s=>s.tipo==='mantenimento');
+  let bp=d.spese.filter(s=>s.tipo==='buonopasto');
+  if(anno){ord=ord.filter(s=>s.data&&s.data.startsWith(anno));m=m.filter(s=>s.data&&s.data.startsWith(anno));bp=bp.filter(s=>s.data&&s.data.startsWith(anno));}
+  const tO=ord.reduce((a,s)=>a+s.importo,0); const tD=ord.reduce((a,s)=>a+s.importo/2,0); const tPO=ord.reduce((a,s)=>a+(s.pagato||0),0);
+  const tM=m.reduce((a,s)=>a+s.importo,0); const tPM=m.reduce((a,s)=>a+(s.pagato||0),0);
+  const tBP=bp.reduce((a,s)=>a+s.importo,0);
+  let t=`RIEPILOGO SPESE SAMUEL${anno?' - '+anno:''}\nData: ${new Date().toLocaleDateString('it-IT')}\n\n`;
+  t+=`=== SPESE EXTRA (50/50) ===\nTotale spese: ${fmt(tO)} | Quota Daniel: ${fmt(tD)} | Pagato: ${fmt(tPO)} | Da ricevere: ${fmt(Math.max(0,tD-tPO))}\n\n`;
+  ord.sort((a,b)=>(a.data||'').localeCompare(b.data||'')).forEach(s=>{
+    const st=stato(s)==='ok'?'SALDATO':stato(s)==='parz'?'PARZIALE':'DA SALDARE';
+    t+=`${s.voce}\n  Data: ${fmtD(s.data)} | Totale: ${fmt(s.importo)} | Quota Daniel: ${fmt(s.importo/2)} | Pagato: ${fmt(s.pagato||0)} | ${st}\n`;
+    if(s.note) t+=`  Note: ${s.note}\n`;
+    t+='\n';
+  });
+  t+=`=== ASSEGNO DI MANTENIMENTO ===\nAtteso: ${fmt(tM)} | Ricevuto: ${fmt(tPM)} | Mancante: ${fmt(Math.max(0,tM-tPM))}\n\n`;
+  m.sort((a,b)=>(a.data||'').localeCompare(b.data||'')).forEach(s=>{
+    t+=`${s.voce} | ${fmtD(s.data)} | ${fmt(s.importo)} | ${stato(s)==='ok'?'PAGATO':'NON PAGATO'}\n`;
+    if(s.note) t+=`  Note: ${s.note}\n`;
+  });
+  t+=`\n=== BUONI PASTO (esclusi da conteggio) ===\nTotale: ${fmt(tBP)}\n`;
+  bp.forEach(s=>{ t+=`${s.voce} | ${fmtD(s.data)} | ${fmt(s.importo)}\n`; });
+  const prev=document.getElementById('tp');
+  prev.style.display='block';
+  prev.innerHTML=`<div class="mono">${t}</div><button class="btn-sec" style="width:100%;margin-top:8px;" onclick="copia()">Copia testo</button>`;
+  window._txt=t;
+}
+
+function copia() { if(navigator.clipboard&&window._txt) navigator.clipboard.writeText(window._txt).then(()=>toast('Copiato!')).catch(()=>toast('Copia manuale')); }
+
+function resetAll() {
+  showModal({
+    title: 'Cancella tutti i dati',
+    body: '<p style="font-size:14px;color:var(--text2);">Sei sicura? Tutti i dati verranno cancellati definitivamente. Questa azione non è reversibile.</p>',
+    confirmLabel: 'Cancella tutto',
+    confirmDanger: true,
+    onConfirm: () => { localStorage.removeItem(K); renderAll(); toast('Dati cancellati'); }
+  });
+}
+
+document.getElementById('hdate').textContent='Aggiornato al '+new Date().toLocaleDateString('it-IT');
+renderAll();
+</script>
+</body>
+</html>
