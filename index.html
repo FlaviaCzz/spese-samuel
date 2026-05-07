@@ -148,9 +148,17 @@
     <p class="stitle">Nuova voce</p>
     <div class="field"><label class="lbl">Tipo</label>
       <select id="n-tipo" onchange="onTipo()">
-        <option value="ordinaria">Spesa extra (50/50)</option>
+        <option value="ordinaria">Spesa extra</option>
         <option value="buonopasto">Buono pasto</option>
         <option value="mantenimento">Assegno di mantenimento</option>
+      </select>
+    </div>
+    <div class="field" id="n-ripartizione-field">
+      <label class="lbl">Ripartizione</label>
+      <select id="n-ripartizione" onchange="onImp()">
+        <option value="50">50% / 50%</option>
+        <option value="100daniel">100% Daniel</option>
+        <option value="100flavia">100% Flavia</option>
       </select>
     </div>
     <div class="field"><label class="lbl">Descrizione</label><input type="text" id="n-voce" placeholder="Es. Camp estivo Luglio 2025"></div>
@@ -323,10 +331,20 @@ async function initApp() {
 
 function fmt(n) { return (+n||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
 function fmtD(d) { if(!d) return '—'; const [y,m,g]=d.split('-'); return g+'/'+m+'/'+y; }
+
+function getQuota(s) {
+  const rip = s.ripartizione || '50';
+  if(rip === '100daniel') return s.importo;
+  if(rip === '100flavia') return 0;
+  return s.importo / 2;
+}
+
 function stato(s) {
   if(s.tipo==='buonopasto') return 'bp';
   if(s.tipo==='mantenimento') return s.pagato>=s.importo-0.01?'ok':s.pagato>0?'parz':'no';
-  const q=s.importo/2; if(s.pagato<=0) return 'no';
+  const q=getQuota(s);
+  if(q===0) return 'flavia'; // 100% Flavia
+  if(s.pagato<=0) return 'no';
   return Math.abs(s.pagato-q)<0.01?'ok':'parz';
 }
 
@@ -380,7 +398,7 @@ function renderOrd() {
   const sel=document.getElementById('f-anno'); const cur=sel.value;
   sel.innerHTML='<option value="">Tutti gli anni</option>'+anni.map(a=>`<option value="${a}"${a===cur?' selected':''}>${a}</option>`).join('');
   const totS=ord.reduce((a,s)=>a+s.importo,0);
-  const totD=ord.reduce((a,s)=>a+s.importo/2,0);
+  const totD=ord.reduce((a,s)=>a+getQuota(s),0);
   const totP=ord.reduce((a,s)=>a+(s.pagato||0),0);
   const rim=totD-totP;
   document.getElementById('so').innerHTML=`
@@ -396,9 +414,9 @@ function renderOrd() {
   const el=document.getElementById('lo');
   if(!fl.length){el.innerHTML='<div class="empty">Nessuna spesa corrispondente</div>';return;}
   el.innerHTML=fl.map(s=>{
-    const st=stato(s); const q=s.importo/2; const r=q-(s.pagato||0);
-    const bc=st==='ok'?'b-ok':st==='parz'?'b-parz':'b-no';
-    const bt=st==='ok'?'Saldato':st==='parz'?'Parziale':'Da saldare';
+    const st=stato(s); const q=getQuota(s); const r=q-(s.pagato||0);
+    const bc=st==='ok'?'b-ok':st==='parz'?'b-parz':st==='flavia'?'b-bp':'b-no';
+    const bt=st==='ok'?'Saldato':st==='parz'?'Parziale':st==='flavia'?'Solo Flavia':'Da saldare';
     return `<div class="card">
       <div class="card-row"><div><div class="ct">${s.voce}</div><div class="cs">${fmtD(s.data)}</div></div><span class="badge ${bc}">${bt}</span></div>
       <hr class="div">
@@ -465,15 +483,28 @@ function togMant(id) {
 function onTipo() {
   const t=document.getElementById('n-tipo').value;
   document.getElementById('n-imp-lbl').textContent=t==='mantenimento'?'Importo assegno (€)':'Importo totale (€)';
+  document.getElementById('n-ripartizione-field').style.display=t==='ordinaria'?'block':'none';
   onImp();
 }
 
 function onImp() {
   const v=parseFloat(document.getElementById('n-imp').value)||0;
   const t=document.getElementById('n-tipo').value;
+  const rip=document.getElementById('n-ripartizione')?document.getElementById('n-ripartizione').value:'50';
   const pv=document.getElementById('n-prev');
-  if(t==='ordinaria'&&v>0){pv.style.display='block';document.getElementById('pm').textContent=fmt(v/2);document.getElementById('pd').textContent=fmt(v/2);}
-  else pv.style.display='none';
+  if(t==='ordinaria'&&v>0){
+    pv.style.display='block';
+    if(rip==='50'){
+      document.getElementById('pm').textContent=fmt(v/2);
+      document.getElementById('pd').textContent=fmt(v/2);
+    } else if(rip==='100daniel'){
+      document.getElementById('pm').textContent=fmt(0);
+      document.getElementById('pd').textContent=fmt(v);
+    } else {
+      document.getElementById('pm').textContent=fmt(v);
+      document.getElementById('pd').textContent=fmt(0);
+    }
+  } else pv.style.display='none';
 }
 
 function salva() {
@@ -482,15 +513,18 @@ function salva() {
   const importo=parseFloat(document.getElementById('n-imp').value);
   const tipo=document.getElementById('n-tipo').value;
   const note=document.getElementById('n-note').value.trim();
+  const rip=tipo==='ordinaria'?(document.getElementById('n-ripartizione')?document.getElementById('n-ripartizione').value:'50'):'50';
   if(!voce){toast('Inserisci la descrizione');return;}
   if(!importo||importo<=0){toast('Inserisci un importo valido');return;}
   const d=db();
-  d.spese.push({id:d.nextId++,voce,data,importo,tipo,pagato:0,dataPagamento:null,notePagamento:'',note});
+  d.spese.push({id:d.nextId++,voce,data,importo,tipo,ripartizione:rip,pagato:0,dataPagamento:null,notePagamento:'',note});
   save(d);
   ['n-voce','n-imp','n-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('n-data').value='';
   document.getElementById('n-prev').style.display='none';
   document.getElementById('n-tipo').value='ordinaria';
+  if(document.getElementById('n-ripartizione')) document.getElementById('n-ripartizione').value='50';
+  document.getElementById('n-ripartizione-field').style.display='block';
   toast('Voce salvata'); renderAll();
 }
 
@@ -558,11 +592,11 @@ function confirmModal() { const btn=document.getElementById('modal-confirm'); if
 
 function renderBV() {
   const d=db();
-  const da=d.spese.filter(s=>s.tipo==='ordinaria'&&stato(s)!=='ok').sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const da=d.spese.filter(s=>s.tipo==='ordinaria'&&stato(s)!=='ok'&&stato(s)!=='flavia').sort((a,b)=>(a.data||'').localeCompare(b.data||''));
   const el=document.getElementById('bv-list');
   if(!da.length){el.innerHTML='<div class="bv-item" style="justify-content:center;color:var(--text2);">Tutte le voci sono saldate</div>';return;}
   el.innerHTML=da.map(s=>{
-    const r=s.tipo==='mantenimento'?s.importo-(s.pagato||0):s.importo/2-(s.pagato||0);
+    const r=s.tipo==='mantenimento'?s.importo-(s.pagato||0):getQuota(s)-(s.pagato||0);
     const tag=s.tipo==='mantenimento'?` <span class="badge b-mant" style="font-size:10px;padding:2px 6px;">mant.</span>`:'';
     return `<div class="bv-item"><input type="checkbox" id="bv-${s.id}" value="${s.id}" onchange="onBonImp()"><label for="bv-${s.id}" class="bv-nome">${s.voce}${tag}</label><span class="bv-quota">${fmt(r)}</span></div>`;
   }).join('');
@@ -594,7 +628,7 @@ function applicaPag() {
   const d=db(); let rim=imp;
   chk.forEach(id=>{
     const s=d.spese.find(x=>x.id===id); if(!s||rim<=0.001) return;
-    const dovuto=s.tipo==='mantenimento'?s.importo-(s.pagato||0):s.importo/2-(s.pagato||0);
+    const dovuto=s.tipo==='mantenimento'?s.importo-(s.pagato||0):getQuota(s)-(s.pagato||0);
     const v=Math.min(rim,dovuto); s.pagato=(s.pagato||0)+v; s.dataPagamento=data;
     if(note) s.notePagamento=(s.notePagamento?s.notePagamento+' / ':'')+note;
     rim-=v;
@@ -609,7 +643,7 @@ function renderReport() {
   const d=db();
   const ord=d.spese.filter(s=>s.tipo==='ordinaria');
   const m=d.spese.filter(s=>s.tipo==='mantenimento');
-  const totD=ord.reduce((a,s)=>a+s.importo/2,0); const totPO=ord.reduce((a,s)=>a+(s.pagato||0),0);
+  const totD=ord.reduce((a,s)=>a+getQuota(s),0); const totPO=ord.reduce((a,s)=>a+(s.pagato||0),0);
   const totM=m.reduce((a,s)=>a+s.importo,0); const totPM=m.reduce((a,s)=>a+(s.pagato||0),0);
   document.getElementById('rs').innerHTML=`
     <div class="stat"><div class="sl">Spese extra (quota Daniel)</div><div class="sv">${fmt(totD)}</div></div>
@@ -624,8 +658,9 @@ function renderReport() {
 function esportaCSV() {
   const d=db(); const anno=document.getElementById('r-anno').value;
   let sp=d.spese; if(anno) sp=sp.filter(s=>s.data&&s.data.startsWith(anno));
-  let csv='Tipo;Voce;Data;Importo totale;Quota Daniel;Pagato;Stato;Note\n';
+  let csv='Tipo;Voce;Data;Importo totale;Quota Daniel;Ripartizione;Pagato;Stato;Note\n';
   sp.forEach(s=>{
+    const ripLabel=s.tipo==='ordinaria'?(s.ripartizione==='100daniel'?'100% Daniel':s.ripartizione==='100flavia'?'100% Flavia':'50/50'):'—';
     const tl=s.tipo==='ordinaria'?'Spesa extra':s.tipo==='buonopasto'?'Buono pasto':'Mantenimento';
     const q=s.tipo==='mantenimento'?s.importo:s.tipo==='buonopasto'?s.importo:s.importo/2;
     const st=s.tipo==='buonopasto'?'—':stato(s)==='ok'?'Saldato':stato(s)==='parz'?'Parziale':'Da saldare';
@@ -649,7 +684,7 @@ function esportaTesto() {
   let t=`RIEPILOGO SPESE SAMUEL${anno?' - '+anno:''}\nData: ${new Date().toLocaleDateString('it-IT')}\n\n`;
   t+=`=== SPESE EXTRA (50/50) ===\nTotale spese: ${fmt(tO)} | Quota Daniel: ${fmt(tD)} | Pagato: ${fmt(tPO)} | Da ricevere: ${fmt(Math.max(0,tD-tPO))}\n\n`;
   ord.sort((a,b)=>(a.data||'').localeCompare(b.data||'')).forEach(s=>{
-    const st=stato(s)==='ok'?'SALDATO':stato(s)==='parz'?'PARZIALE':'DA SALDARE';
+    const st=stato(s)==='ok'?'SALDATO':stato(s)==='parz'?'PARZIALE':stato(s)==='flavia'?'SOLO FLAVIA':'DA SALDARE';
     t+=`${s.voce}\n  Data: ${fmtD(s.data)} | Totale: ${fmt(s.importo)} | Quota Daniel: ${fmt(s.importo/2)} | Pagato: ${fmt(s.pagato||0)} | ${st}\n`;
     if(s.note) t+=`  Note: ${s.note}\n`;
     t+='\n';
