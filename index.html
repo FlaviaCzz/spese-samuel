@@ -662,7 +662,7 @@ function esportaCSV() {
   sp.forEach(s=>{
     const ripLabel=s.tipo==='ordinaria'?(s.ripartizione==='100daniel'?'100% Daniel':s.ripartizione==='100flavia'?'100% Flavia':'50/50'):'—';
     const tl=s.tipo==='ordinaria'?'Spesa extra':s.tipo==='buonopasto'?'Buono pasto':'Mantenimento';
-    const q=s.tipo==='mantenimento'?s.importo:s.tipo==='buonopasto'?s.importo:s.importo/2;
+    const q=s.tipo==='mantenimento'?s.importo:s.tipo==='buonopasto'?s.importo:getQuota(s);
     const st=s.tipo==='buonopasto'?'—':stato(s)==='ok'?'Saldato':stato(s)==='parz'?'Parziale':'Da saldare';
     csv+=[tl,s.voce,fmtD(s.data),s.importo.toFixed(2),q.toFixed(2),(s.pagato||0).toFixed(2),st,s.note||''].map(v=>`"${v}"`).join(';')+'\n';
   });
@@ -678,14 +678,14 @@ function esportaTesto() {
   let m=d.spese.filter(s=>s.tipo==='mantenimento');
   let bp=d.spese.filter(s=>s.tipo==='buonopasto');
   if(anno){ord=ord.filter(s=>s.data&&s.data.startsWith(anno));m=m.filter(s=>s.data&&s.data.startsWith(anno));bp=bp.filter(s=>s.data&&s.data.startsWith(anno));}
-  const tO=ord.reduce((a,s)=>a+s.importo,0); const tD=ord.reduce((a,s)=>a+s.importo/2,0); const tPO=ord.reduce((a,s)=>a+(s.pagato||0),0);
+  const tO=ord.reduce((a,s)=>a+s.importo,0); const tD=ord.reduce((a,s)=>a+getQuota(s),0); const tPO=ord.reduce((a,s)=>a+(s.pagato||0),0);
   const tM=m.reduce((a,s)=>a+s.importo,0); const tPM=m.reduce((a,s)=>a+(s.pagato||0),0);
   const tBP=bp.reduce((a,s)=>a+s.importo,0);
   let t=`RIEPILOGO SPESE SAMUEL${anno?' - '+anno:''}\nData: ${new Date().toLocaleDateString('it-IT')}\n\n`;
-  t+=`=== SPESE EXTRA (50/50) ===\nTotale spese: ${fmt(tO)} | Quota Daniel: ${fmt(tD)} | Pagato: ${fmt(tPO)} | Da ricevere: ${fmt(Math.max(0,tD-tPO))}\n\n`;
+  t+=`=== SPESE EXTRA ===\nTotale spese: ${fmt(tO)} | Quota Daniel: ${fmt(tD)} | Pagato: ${fmt(tPO)} | Da ricevere: ${fmt(Math.max(0,tD-tPO))}\n\n`;
   ord.sort((a,b)=>(a.data||'').localeCompare(b.data||'')).forEach(s=>{
     const st=stato(s)==='ok'?'SALDATO':stato(s)==='parz'?'PARZIALE':stato(s)==='flavia'?'SOLO FLAVIA':'DA SALDARE';
-    t+=`${s.voce}\n  Data: ${fmtD(s.data)} | Totale: ${fmt(s.importo)} | Quota Daniel: ${fmt(s.importo/2)} | Pagato: ${fmt(s.pagato||0)} | ${st}\n`;
+    t+=`${s.voce}\n  Data: ${fmtD(s.data)} | Totale: ${fmt(s.importo)} | Quota Daniel: ${fmt(getQuota(s))} | Pagato: ${fmt(s.pagato||0)} | ${st}\n`;
     if(s.note) t+=`  Note: ${s.note}\n`;
     t+='\n';
   });
